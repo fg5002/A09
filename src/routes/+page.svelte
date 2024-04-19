@@ -59,8 +59,7 @@
   const query3 = async()=>{
     try {
       const data = await sql`select hun, ltn from taxons where lower(hun) REGEXP ${searchText}`;
-      res = data.length>0 ? `${data[0].hun} (${data[0].ltn})` : 'none';
-      console.log(JSON.stringify(data));
+      res = JSON.stringify(data);
     } catch (error) {
         console.log(error);
         alert(error);
@@ -75,9 +74,8 @@
   <div class="flex flex-col gap-2 p-2 items-start bg-indigo-300 h-full">
     <input class="border-2 border-violet-400 rounded-sm" type="file" id="input" name="Input" accept=".db, .sqlite" on:change={fileInputChange}/>
     <input 
-      class="border-2 border-violet-400 rounded-sm w-1/2" 
+      class="border-2 border-violet-400 rounded-sm w-1/2 py-1 px-2" 
       type="text" 
-      on:change={fileInputChange} 
       bind:value={searchText}
       placeholder="searchtext"
     />
