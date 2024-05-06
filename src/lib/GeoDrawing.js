@@ -342,7 +342,7 @@
     try{
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject,{
-          timeout: 1000,
+          timeout: 15000,
           maximumAge: 200,
           enableHighAccuracy: true
         });
@@ -358,7 +358,7 @@
       {
         "type": "Feature",
         "properties": {
-          data: "GPS",
+          data: acc.toString(),
           type: 7,
           id: acc.toString()
         },

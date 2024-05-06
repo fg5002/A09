@@ -115,7 +115,7 @@
     }, error => {
       res = `${locationError(error)}\n`;
     }, {
-      timeout: 1000,
+      timeout: 15000,
       maximumAge: 200,
       enableHighAccuracy: true
     })
@@ -168,7 +168,6 @@
       on:keydown= {keyDown}
       bind:this={promptRef}
       placeholder="Search"
-      virtualkeyboardpolicy="manual"
     />
 
     {#if items.length>0}
