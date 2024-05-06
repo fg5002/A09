@@ -19,17 +19,17 @@
   const clustered = hasContext(L.FeatureGroup);
 
   const popupContent = (d)=>{
-    if(d.data){
+    if(d){
       return `<div class="p-2 w-auto flex flex-col select-none">
-                <span>${d.id}</span>
-                <!--span class="font-semobold text-lg">${d.data}</span-->
+                <span>${d}</span>
+                <!--span class="font-semobold text-lg">${d}</span-->
               </div>`
     }
   }
 
   const options = {
     onEachFeature: (feature, layer)=> {
-      layer.bindPopup(popupContent(feature.properties),{
+      layer.bindPopup(popupContent(feature.properties.data),{
         closeButton: false,
         offset: L.point({x:0, y:-5}),
         maxWidth: 200       
@@ -52,7 +52,7 @@
     }
     },
 
-    style: (feature)=>{
+    /*style: (feature)=>{
       switch (feature.properties.type) {
         case 0: // Temp
           return {
@@ -117,6 +117,76 @@
             opacity: 1.0,
             fillOpacity: 1.0
           };
+        default:
+          break;
+      }
+    }*/
+
+    style: (feature)=>{
+      switch (feature.properties.type) {
+        case 1:
+          return {
+            fillColor: 'yellowgreen',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+        case 2:
+          return {
+            fillColor: 'grey',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+        case 3:
+          return {
+            fillColor: 'red',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+        case 4:
+          return {
+            fillColor: 'blue',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+        case 5:
+          return {
+            fillColor: 'violet',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+        case 6:
+          return {
+            fillColor: 'orange',
+            radius: 5,
+            color: 'black',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };
+          case 7:
+          return {
+            fillColor: 'cyan',
+            radius: 5,
+            color: 'blue',
+            weight: 2,
+            opacity: 1.0,
+            fillOpacity: 0.3
+          };          
         default:
           break;
       }

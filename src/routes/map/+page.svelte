@@ -9,7 +9,7 @@
 
   import Control from "$lib/Control.svelte";
   import LeafletContextMenu from "$lib/LeafletContextMenu.svelte";
-  import {tempGeo, mapState, dailyData, geoData, queryData, gpsGeo, controlGeo, selectedShape, tempIndex, pointIndex, currData} from '$lib/store';
+  import {tempGeo, mapState, dailyData, geoData, queryData, gpsGeo, controlGeo, selectedShape, tempIndex, pointIndex, currData, quadrat} from '$lib/store';
   import { drawControlPoints, getCoords, drawShape } from '$lib/GeoDrawing.js';
   import MenuItem from "$lib/MenuItem.svelte";
   import SubGroup from "$lib/SubGroup.svelte";
@@ -246,19 +246,23 @@
       url={'http://{s}.map.turistautak.hu/tiles/turistautak/{z}/{x}/{y}.png'}
       options={{ minZoom:7, maxZoom:18, attribution: '&copy; Túristautak.hu', crossOrigin : true}}
     />   
-      
+
+    <GeoJson name={'CT55B2'} data={$quadrat}/>    
+
     <MarkerCluster>
-      <SubGroup  name={'Taxon'}>
+      <!--SubGroup  name={'Taxon'}>
         <GeoJson name={'Taxon'} data={$dailyData}/>
-      </SubGroup>
+      </SubGroup-->
       <SubGroup name={"Geo"}>
         <GeoJson name={"Geo"} data={$geoData}/>
       </SubGroup>
-      <SubGroup name={"Query"}>
+      <!--SubGroup name={"Query"}>
         <GeoJson name={"Query"} data={$queryData}/>
-      </SubGroup>
+      </SubGroup-->
+
     </MarkerCluster>
-    
+
+
     <GeoJson name={"Temp"} data={$tempGeo} on:openContextMenu={openEditing}/>
     <GeoJson name={"GPS"} data={$gpsGeo}/>
     <GeoJson name={"ControlPoints"} data={$controlGeo}/>

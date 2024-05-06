@@ -342,25 +342,29 @@
     try{
       const position = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject,{
-          timeout: 15000,
-          maximumAge: 1000,
+          timeout: 1000,
+          maximumAge: 200,
           enableHighAccuracy: true
         });
       });
 
-      let cor = [ position.coords.longitude, position.coords.latitude ];
+      let cor = [position.coords.longitude, position.coords.latitude];
       cor = cor.map(s=>parseFloat(s.toFixed(6)));
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(cor);
+      }
+      let acc = parseFloat(position.coords.accuracy.toFixed(1));
       let tmpPoint =
       {
         "type": "Feature",
         "properties": {
           data: "GPS",
-          type: 3,
-          id: 'G15'
+          type: 7,
+          id: acc.toString()
         },
         "geometry": {
           "type": "Point",
-          "param": [parseFloat(position.coords.accuracy.toFixed(1))],
+          "param": [acc],
           "coordinates": cor
         }
       } 

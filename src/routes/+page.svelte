@@ -1,10 +1,15 @@
 <script>
   import { SQLocal } from 'sqlocal';
+  import {currDate, currData, currData2 } from '../lib/store';
   
   export const { sql, overwriteDatabaseFile, getDatabaseFile } = new SQLocal('ffd.db');
-    
-  let searchText = "";
-  let res = "";
+  
+  let searchText = '';
+  let items = [];
+  let promptRef = null;
+  let editorItems = $currData2.map(n=>n.name);
+  editorItems.length = 6;
+  let xx = false;
   
   const fileInputChange = async()=> {
     try {
@@ -32,58 +37,174 @@
   }
 
   const query1 = async()=>{
+    if(searchText.length<4){
+      items.length = 0;
+      return;
+    }
     try {
-      searchText = `%${searchText}%`;
-      const data = await sql`select hun, ltn from taxons where lower(hun) LIKE ${searchText}`;
-      res = JSON.stringify(data);
+      const data = await sql`select id, hun, ltn, abr, mon from taxons where lower(hun) LIKE ${'%'+searchText+'%'} OR lower(ltn) LIKE ${'%'+searchText+'%'} OR abr LIKE ${'%'+searchText+'%'}`;
+      items = data.sort((a, b)=> a["hun"].localeCompare(b["hun"], 'hu'));
     } catch (error) {
         console.log(error);
         alert(error);
-    } finally {
-      searchText = "";
     }
-  }  
+  }
 
-  const query2 = async()=>{
-    try {
-      const data = await sql`SELECT json_extract('{"a": 1, "b": 15}', '$.b') x;`;
-      res = data[0].x;
-    } catch (error) {
-        console.log(error);
-        alert(error);
-    } finally {
-      searchText = "";
+  const dateTimeString = ()=> {
+    let date = new Date().toISOString().split('T')[0].replace(/-/g,'');
+    let time = new Date().toTimeString().slice(0, 8).replace(/:/g,'');
+    return `${date}${time}`;
+  }
+
+  const submitList = (i)=> {
+    $currData.taxon = i;
+    console.log($currData.taxon, 'dt', dateTimeString());
+    searchText = "";
+    items.length = 0;
+    promptRef.focus();
+  }
+
+  const keyUp = (e)=> {
+    if(e.key === "Enter"){
+      if(items.length > 0){
+        submitList(items[0]);
+      }
+    }else{
+      query1();
     }
-  }  
+  }
 
-  const query3 = async()=>{
-    try {
-      const data = await sql`select hun, ltn from taxons where lower(hun) REGEXP ${searchText}`;
-      res = JSON.stringify(data);
-    } catch (error) {
-        console.log(error);
-        alert(error);
-    } finally {
-      searchText = "";
+  const keyDown = (e)=> {
+    if(e.key === "Enter"){
+      e.preventDefault();
     }
-  }  
-
+  }
   
+  const monthConv =(m)=> parseInt(m[$currDate.split('-')[1]-1]);
+
+  let res = "";
+  let cor = "";
+  let pon = "";
+  let idx = 0;
+  let tx = 0;
+  
+  const geoLocation = ()=>{
+    navigator.geolocation.getCurrentPosition(position => {
+      cor = [position.coords.latitude, position.coords.longitude].map(s=>parseFloat(s).toFixed(6));
+      pon = parseFloat(position.coords.accuracy.toFixed(2));
+      switch (true) {
+        case pon < 5:
+          tx = "Excellent"
+          break;
+        case pon >5 && pon < 50:
+          tx = "GOD"
+          break;
+        case pon > 50:
+          tx = "BAD"
+          break;      
+        default:
+          break;
+      }
+      if(idx<5){
+        res += `${cor[0]},${cor[1]}\n${tx} (${pon})\n`;
+      }else{
+        res = `${cor[0]},${cor[1]}\n${tx} (${pon})\n`;
+        idx = 0;
+      }
+      idx++
+    }, error => {
+      res = `${locationError(error)}\n`;
+    }, {
+      timeout: 1000,
+      maximumAge: 200,
+      enableHighAccuracy: true
+    })
+  }
+    
+  function locationError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            return "User denied the request for geolocation.";
+        case error.POSITION_UNAVAILABLE:
+            return "Location information is currently unavailable.";
+        case error.TIMEOUT:
+            return "Request for user location timed out.";
+        case error.UNKNOWN_ERROR:
+            return "An unknown error occurred.";
+    }
+  }
+
+  const copyToClipboard = async()=> {
+    try {
+      //let geo = $tempGeo.features[$tempIndex].geometry;
+      //let text = geo.param ? [...geo.coordinates, ...geo.param] : geo.coordinates;
+      //console.log(JSON.stringify(text));
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   </script>
   
-  <div class="flex flex-col gap-2 p-2 items-start bg-indigo-300 h-full">
-    <input class="border-2 border-violet-400 rounded-sm" type="file" id="input" name="Input" accept=".db, .sqlite" on:change={fileInputChange}/>
-    <input 
-      class="border-2 border-violet-400 rounded-sm w-1/2 py-1 px-2" 
-      type="text" 
-      bind:value={searchText}
-      placeholder="searchtext"
+  <div class="flex flex-col gap-2 p-2 items-center bg-indigo-300 h-3/4">
+
+    <input
+      class="border-2 border-violet-400 rounded-sm" 
+      type="file" 
+      id="input" 
+      name="Input" 
+      accept=".db, .sqlite" 
+      on:change={fileInputChange}
     />
-    <div class="flex flex-col gap-2 p-2">
-      <button class="border-2 border-violet-400 rounded-md p-1" on:click={query1}>Normal query</button>
-      <button class="border-2 border-violet-400 rounded-md p-1" on:click={query3}>Regexp query</button>
-      <button class="border-2 border-violet-400 rounded-md p-1" on:click={query2}>JSON query</button>
-      <!--button class="border-2 border-violet-400 rounded-md p-1" on:click={extractFile}>Download</button-->
-    </div>
-    <textarea class="p-2 w-full h-1/3" value={res} row=10/>
+
+    <textarea
+      class="px-2 py-1 w-2/3 border-2 min-h-9 border-violet-400 bg-yellow-200 h-9 resize-none" 
+      type="text"
+      bind:value = {searchText}
+      on:keyup = {keyUp}
+      on:keydown= {keyDown}
+      bind:this={promptRef}
+      placeholder="Search"
+      virtualkeyboardpolicy="manual"
+    />
+
+    {#if items.length>0}
+      <div class="w-2/3 h-auto max-h-full overflow-y-auto snap-y snap-proximity border-slate-600 border">
+        <ul>
+          {#each items as item, i (item.id)}
+            <li 
+              class="border-b border-slate-600 p-2 select-none bg-lime-{monthConv(item.mon) === 1 ? '500' : monthConv(item.mon) === 2  ? '300' : '100'} " 
+              on:pointerup={()=> submitList(item)}
+            >
+              <span class="font-semibold">{item.hun}</span>
+              <span class="italic">{item.ltn}</span>
+              {#if item.abr != null}
+                <span class=" text-violet-700 self-center text-sm">{`(${item.abr})`}</span>
+              {/if}
+            </li>
+          {/each} 
+        </ul>    
+      </div>
+    {:else}
+      <div class="w-2/3 h-auto bg-lime-100 border-2 border-slate-600 overflow-y-auto snap-y snap-proximity">
+        <ul>
+          {#each editorItems as eid, i}
+            <li 
+              class="border-b border-slate-600 p-2 select-none " 
+              on:pointerup={()=> submitList(i)}
+            >
+              <span class="font-semibold">{eid}</span>
+            </li>
+          {/each} 
+        </ul>    
+      </div>    
+    {/if}
+  </div>
+  <div class="bg-yellow-200 h-12 flex gap-2 p-2">
+    <button class="bg-violet-100 border-2 border-violet-700 rounded-md p-2 self-center" on:click={geoLocation}>Geolocation</button>
+    <span class="p-2 h-full, text-2xl self-center bg-orange-100">{cor}</span>
+    <span class="p-2 h-full, text-2xl self-center bg-orange-100">{pon}</span>
   </div>
