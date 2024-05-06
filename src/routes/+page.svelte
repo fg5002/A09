@@ -82,69 +82,42 @@
   
   const monthConv =(m)=> parseInt(m[$currDate.split('-')[1]-1]);
 
-  let res = "";
-  let cor = "";
-  let pon = "";
-  let idx = 0;
-  let tx = 0;
+  let loc = ["",""];
   
-  const geoLocation = ()=>{
-    navigator.geolocation.getCurrentPosition(position => {
-      cor = [position.coords.latitude, position.coords.longitude].map(s=>parseFloat(s).toFixed(6));
-      pon = parseFloat(position.coords.accuracy.toFixed(2));
-      switch (true) {
-        case pon < 5:
-          tx = "Excellent"
-          break;
-        case pon >5 && pon < 50:
-          tx = "GOD"
-          break;
-        case pon > 50:
-          tx = "BAD"
-          break;      
-        default:
-          break;
+  const geoLocation= async()=>{
+    try{
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject,{
+          timeout: 15000,
+          maximumAge: 200,
+          enableHighAccuracy: true
+        });
+      });
+
+      let cor = [position.coords.longitude, position.coords.latitude];
+      cor = cor.map(s=>parseFloat(s.toFixed(6)));
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(cor);
       }
-      if(idx<5){
-        res += `${cor[0]},${cor[1]}\n${tx} (${pon})\n`;
-      }else{
-        res = `${cor[0]},${cor[1]}\n${tx} (${pon})\n`;
-        idx = 0;
-      }
-      idx++
-    }, error => {
-      res = `${locationError(error)}\n`;
-    }, {
-      timeout: 15000,
-      maximumAge: 200,
-      enableHighAccuracy: true
-    })
+      let acc = parseFloat(position.coords.accuracy.toFixed(1));
+      loc= [cor, acc]
+    } catch(e) {
+      alert(locationError(e));
+    }
   }
     
-  function locationError(error) {
+  const locationError = (error)=> {
     switch(error.code) {
-        case error.PERMISSION_DENIED:
-            return "User denied the request for geolocation.";
-        case error.POSITION_UNAVAILABLE:
-            return "Location information is currently unavailable.";
-        case error.TIMEOUT:
-            return "Request for user location timed out.";
-        case error.UNKNOWN_ERROR:
-            return "An unknown error occurred.";
+      case error.PERMISSION_DENIED:
+        return "User denied the request for geolocation.";
+      case error.POSITION_UNAVAILABLE:
+        return "Location information is currently unavailable.";
+      case error.TIMEOUT:
+        return "Request for user location timed out.";
+      case error.UNKNOWN_ERROR:
+        return "An unknown error occurred.";
     }
-  }
-
-  const copyToClipboard = async()=> {
-    try {
-      //let geo = $tempGeo.features[$tempIndex].geometry;
-      //let text = geo.param ? [...geo.coordinates, ...geo.param] : geo.coordinates;
-      //console.log(JSON.stringify(text));
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
-      }
-    } catch (err) {
-      console.error(err);
-    }
+  
   }
 
   </script>
@@ -202,8 +175,8 @@
       </div>    
     {/if}
   </div>
-  <div class="bg-yellow-200 h-12 flex gap-2 p-2">
+  <div class="bg-yellow-200 flex gap-2 p-2 overflow-x-auto">
     <button class="bg-violet-100 border-2 border-violet-700 rounded-md p-2 self-center" on:click={geoLocation}>Geolocation</button>
-    <span class="p-2 h-full, text-2xl self-center bg-orange-100">{cor}</span>
-    <span class="p-2 h-full, text-2xl self-center bg-orange-100">{pon}</span>
+    <span class="p-2 h-full, text-xl self-center bg-orange-100">{loc[0]}</span>
+    <span class="p-2 h-full, text-xl self-center bg-orange-100">{loc[1]}</span>
   </div>
