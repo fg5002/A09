@@ -30,6 +30,10 @@
   let showDrawingMenu = false;
   let quickPoint = false;
   let map;
+
+  /*const fpath="file:///storage/emulated/0/Data/";
+  const spath="file:///storage/0000-0000/";
+  const filepath2='C:/Users/Attila/Documents/Development/Budapest GSat/'; */
   
   $: cursorPos = $mapState.center;
   
@@ -241,28 +245,37 @@
       url={'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'}
       options={{ minZoom: 7, maxZoom: 19, attribution: '&copy; ESRI', crossOrigin : true}}
     />
+
+    <!--TileLayer
+      name={'Google offline'}
+      url={`${filepath2}{z}/{x}/{y}.png`}
+      options={{ minZoom: 7, maxZoom: 21, attribution: '&copy; Google Maps', crossOrigin : true}}
+    /-->
+
     <TileLayer
       name={'Túristautak'}
       url={'http://{s}.map.turistautak.hu/tiles/turistautak/{z}/{x}/{y}.png'}
       options={{ minZoom:7, maxZoom:18, attribution: '&copy; Túristautak.hu', crossOrigin : true}}
     />   
-
-    <GeoJson name={'CT55B2'} data={$quadrat}/>    
-
+  
     <MarkerCluster>
-      <!--SubGroup  name={'Taxon'}>
+      <SubGroup  name={'CT55B2'}>
+        <GeoJson name={'CT55B2'} data={$quadrat}/>
+      </SubGroup>
+      <SubGroup  name={'Taxon'}>
         <GeoJson name={'Taxon'} data={$dailyData}/>
-      </SubGroup-->
+      </SubGroup>
       <SubGroup name={"Geo"}>
         <GeoJson name={"Geo"} data={$geoData}/>
       </SubGroup>
-      <!--SubGroup name={"Query"}>
+      <SubGroup name={"Query"}>
         <GeoJson name={"Query"} data={$queryData}/>
-      </SubGroup-->
-
+      </SubGroup>
+      
     </MarkerCluster>
-
-
+    
+    
+    <!--GeoJson name={'CT55B2'} data={$quadrat}/-->
     <GeoJson name={"Temp"} data={$tempGeo} on:openContextMenu={openEditing}/>
     <GeoJson name={"GPS"} data={$gpsGeo}/>
     <GeoJson name={"ControlPoints"} data={$controlGeo}/>

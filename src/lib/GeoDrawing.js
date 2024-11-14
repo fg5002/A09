@@ -348,8 +348,7 @@
         });
       });
 
-      let cor = [position.coords.longitude, position.coords.latitude];
-      cor = cor.map(s=>parseFloat(s.toFixed(6)));
+      let cor = [position.coords.longitude, position.coords.latitude].map(s=>parseFloat(s.toFixed(6)));
       if (navigator?.clipboard?.writeText) {
         await navigator.clipboard.writeText(cor);
       }

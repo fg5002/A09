@@ -6,9 +6,11 @@
 
 </script>
 
-<div class="flex flex-wrap items-start justify-start basis-full text-lg px-2 py-1 gap-2" on:pointerup={editor}>
-  {#if data === null || data.length === 0}
-    <span class="font-bold w-1/4 select-none {needed ? 'text-red-600' : 'text-green-600'}">{name}</span>
+<div class="flex flex-wrap items-start justify-start text-lg px-2 gap-1 bg-yellow-300" on:pointerup={editor}>
+  {#if !data || data.length === 0}
+    {#if needed}
+      <span class="font-bold w-1/4 select-none text-red-600">{name}</span>
+    {/if}
   {:else}
     <slot/>
   {/if}

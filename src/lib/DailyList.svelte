@@ -1,56 +1,110 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { flip } from 'svelte/animate';
   import Modal from "./Modal.svelte";
-  import ContextMenu from "./ContextMenu.svelte";
+  import {items} from '$lib/store';
+  import {flip} from 'svelte/animate';
 
   export let showDailyList = false;
 
-  let showContextMenu = false;
-
   const dispatch = createEventDispatcher();
 
-  let activeIndex = null;
-  let shiftIndex= null;
-  let items = "alma, körte, szilva, kajszi, naspolya, málna, dió, mogyoró, berkenye, meggy, ribizke, egres, mandula, cseresznye".split(', ');
-  //let items = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20".split(',');
+  let container;
+  let draggedItem = null;
+  let overItem = null;
+  let overElement = null;
 
-  const selectItem = (i)=> {
-    activeIndex = i;
-    showContextMenu = true;
+  let open = false;
+  
+  const handleTouchStart = (item)=> {
+    draggedItem = item;
   }
 
-  const insertItem = ()=>{
-    if(activeIndex === shiftIndex){
-      clearIndices();
-      return
+  const handleTouchMove = (e)=> {
+    overItem = null
+    overElement && overElement.classList.remove('bg-yellow-300');  
+    const touch = e.touches[0];
+    let z = document.elementFromPoint(touch.clientX, touch.clientY);
+    if(z.classList.contains('lis')){
+      overElement = z;
+      overItem = $items.filter(item => item.id == overElement.dataset.id)[0];
+      overElement.classList.add('bg-yellow-300');
     }
-    let item = items[shiftIndex];
-		items.splice(shiftIndex, 1);
-    items.splice(activeIndex>shiftIndex ? activeIndex-1 : activeIndex, 0, item);
-		items = items;    
-    clearIndices();
+
+    handleScroll(e);
   }
   
-  const selectToMove = ()=>{
-    shiftIndex = activeIndex;
-    activeIndex = null;
+  const handleTouchEnd = ()=> {
+    if(overItem && draggedItem != overItem){
+      $items = $items.filter((item) => item.id !== draggedItem.id);
+      const targetIndex = overItem && $items.findIndex((item) => item == overItem);
+      $items.splice(targetIndex, 0, draggedItem);
+      overItem = null;
+    }
+    overElement && overElement.classList.remove('bg-yellow-300');
+    overElement = null;
+    draggedItem = null;
+    activeItem = null;
   }
   
-  const clearIndices = ()=>{
-    activeIndex = null;
-    shiftIndex = null;
+  const handleScroll = (e)=> {
+    const touch = e.touches[0];
+    const { top, bottom } = container.getBoundingClientRect();
+    const scrollSpeed = 5;
+    if (touch.clientY - top < 50) {
+      container.scrollBy(0, -scrollSpeed);
+    }
+    if (bottom - touch.clientY < 50) {
+      container.scrollBy(0, scrollSpeed);
+    }
   }
 
-  const editDailyItem = ()=>{
-  }
+  //-------------------------------------------------------------------
+
+  let activeItem = null;
   
-  const editItem = ()=>{
-    dispatch('editDailyItem', items[activeIndex]);
-    clearIndices();
-    showContextMenu = false;
-    showDailyList = false;
+  function handleSwipeStart(event, item) {
+    activeItem = item;
+    item.startX = event.touches[0].clientX;
+    item.translateX = 0;
+    console.log('start', item.translateX)
   }
+
+  function handleSwipeMove(event, item) {
+    if (activeItem === item) {
+      const currentX = event.touches[0].clientX;
+      const deltaX = currentX - item.startX;
+      if (deltaX < 0 || deltaX > 0) {
+        item.translateX = deltaX;
+        console.log('move', item.translateX)
+        //item.translateX = 0;
+      }
+    }
+  }
+
+  function handleSwipeEnd(item) {
+    if (activeItem === item) {
+      //item.translateX = 0;
+      // Swipe threshold to activate button actions
+      if (item.translateX < -100) {
+        item.translateX = -150; // Show right buttons
+      } else if (item.translateX > 100) {
+        item.translateX = 150; // Show left buttons
+      } else {
+        item.translateX = 0; // Reset to original position
+      }
+      console.log('end', item.translateX)
+    }
+    activeItem = null;
+  }
+
+  function leftButtonAction(item) {
+    console.log(`Left button clicked for ${item.nam}`);
+  }
+
+  function rightButtonAction(item) {
+    console.log(`Right button clicked for ${item.nam}`);
+  }
+
 
 </script>
 
@@ -58,31 +112,43 @@
   bind:showModal = {showDailyList} 
   modalClass = "daily-list" 
   backdropClasses = "items-start justify-center z-2000"
-  mainClasses = "w-full h-3/4 mt-1.5 md:w-2/3 xl:w-1/3"
-  on:modalClose = {clearIndices}
+  mainClasses = "w-full h-3/4 flex-col mt-1.5 md:w-2/3 xl:w-1/3"
+
   inFly = {{x: 500, duration: 500}}
   outFly = {{x: 500, duration: 500}}
 >
-  <ContextMenu 
-    bind:showContextMenu
-    bind:shiftIndex
-    on:selectToMove = {selectToMove}
-    on:insertItem = {insertItem}
-    on:modalClose = {clearIndices}
-    on:editItem = {editItem}
-  />
 
-  <div class="h-full w-full flex flex-col font-semibold border-slate-500 border-2 rounded-sm overflow-y-auto snap-y snap-proximity divide-y divide-slate-400">
-    {#each items as item, i (item)}
-      <div 
-        class="p-2 select-none text-lg font-bold snap-end 
-        {activeIndex === i ? 'bg-lime-400' : shiftIndex === i ? 'bg-lime-400' : 'bg-yellow-100'}"
-        animate:flip = "{{duration: 300}}"
-        on:contextmenu|preventDefault = {()=> selectItem(i)}
-        role="link"
-        tabindex = 0
-      >{item}</div>
+  <div bind:this={container} class="px-2 bg-lime-200 overflow-y-auto border border-gray-300 rounded divide-y-2 divide-slate-400">
+
+    {#each $items as item (item.id)}
+
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <div
+        class="lis flex justify-between items-center select-none {draggedItem === item ? 'bg-yellow-300' : 'bg-lime-200'}"
+        data-id = {item.id}
+        animate:flip={{duration: 300}}
+        on:contextmenu|preventDefault={()=> activeItem = item}
+      >
+
+        <div class="lis h-full px-2 py-1 select-none" data-id = {item.id}>{item.nam}</div>
+
+        {#if activeItem && activeItem.id === item.id}
+          
+          <button
+            on:click={() => rightButtonAction(item)}
+            on:touchstart|preventDefault={handleTouchStart(item)}
+            on:touchmove={(e)=> handleTouchMove(e)}
+            on:touchend={handleTouchEnd}         
+          >
+            <img src='images/flower-tulip-outline.svg' alt="No" class="w-auto h-6">
+          </button>
+
+        {/if}
+
+      </div>
+
     {/each}
+
   </div>
 
 </Modal>

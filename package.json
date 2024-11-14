@@ -30,6 +30,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@neodrag/svelte": "^2.0.6",
 		"@turf/bearing": "^6.5.0",
 		"@turf/destination": "^6.5.0",
 		"@turf/distance": "^6.5.0",
@@ -41,7 +42,7 @@
 		"leaflet": "^1.9.4",
 		"leaflet.featuregroup.subgroup": "^1.0.2",
 		"leaflet.markercluster": "^1.5.3",
-		"sqlocal": "^0.7.1",
+		"sqlocal": "^0.11.1",
 		"svelty-picker": "^5.2.6"
 	}
 }

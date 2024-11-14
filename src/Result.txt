@@ -1,0 +1,20 @@
+Result
+	submitlist
+----------------------------
+Notes
+	textarea
+----------------------------
+	input
+Taxon
+Props
+Observer
+Files
+Refs
+	searchlist
+	reslist
+
+Props	
+	textEdit
+	numEdit
+	timepicker
+	sublist

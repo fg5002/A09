@@ -1,13 +1,19 @@
 <script>
-	//import '../app.postcss';
   import '../app.pcss';
   import Navbar from '$lib/Navbar.svelte';
+
+  /*if ("virtualKeyboard" in navigator) {
+    navigator.virtualKeyboard.overlaysContent = true;
+  }*/
+  
 </script>
 
-<body class=" bg-slate-800">
-  
-  <div class="flex flex-col justify-start h-screen w-screen bg-violet-100 md:w-2/3 md:mx-auto xl:w-2/3">
-    <Navbar/>
-    <slot />
-  </div>
-</body>
+<!--div class="min-h-screen grid grid-rows-[auto,1fr]">
+	<Navbar/>
+	<slot />
+</div-->
+
+<div class="flex flex-col justify-start h-screen w-screen">
+  <Navbar/>
+  <slot />
+</div>

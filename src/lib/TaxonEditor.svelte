@@ -28,8 +28,7 @@
   $: searchText = promptRef && promptRef.value; 
   
   /*
-  Fekete gólya (Ciconia nigra)
-  3pd átrepülő dk-felé
+  Fekete gólya (Ciconia nigra) 3pd átrepülő dk-felé
   https://www.google.com/maps/search/?api=1&query=47.5,19.25
   */
 
